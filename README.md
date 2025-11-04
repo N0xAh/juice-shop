@@ -239,3 +239,5 @@ OWASP Juice Shop and any contributions are Copyright © by Bjoern Kimminich & th
 2014-2025.
 
 ![Juice Shop Logo](https://raw.githubusercontent.com/juice-shop/juice-shop/master/frontend/src/assets/public/images/JuiceShop_Logo_400px.png)
+Test de déclenchement du pipeline
+Test2 de déclenchement du pipeline
