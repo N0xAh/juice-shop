@@ -1,0 +1,68 @@
+name: 'Pipeline DevSecOps'
+
+on:
+  pull_request:
+    branches:
+      - 'development'  # Pour les PR de feature vers development
+      - 'master'         # Pour les PR de release vers main ou de hotfix vers main
+
+  workflow_dispatch:  # Permet de lancer le pipeline manuellement
+
+jobs:
+  build-and-test: # 1er job
+    name: 'Build & Tests'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+
+      - name: 'Setup Node.js'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: 'Install dependencies'
+        run: npm install
+
+      - name: 'Run unit tests'
+        run: npm test
+        
+  sca-npm-audit: # 2ème job
+    name: 'SCA'
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+
+      - name: 'Setup Node.js'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: 'Install dependencies (minimal)'
+        run: npm ci
+
+      - name: 'Run NPM Audit'
+	      # bloque seulement en cas de vulnérabilités critiques
+        run: npm audit --audit-level=critical
+
+  sast-codeql-analysis: # 3ème job
+    name: 'SAST'
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write # permet d'écrire les failles dans l'onglet security
+      actions: read # permet de lire l'état d'autres actions
+      contents: read # permet de lire le code
+
+    steps:
+      - name: 'Checkout code'
+        uses: actions/checkout@v4
+
+      - name: 'Initialize CodeQL'
+        uses: github/codeql-action/init@v3
+        with:
+          languages: 'javascript'
+          queries: security-extended
+
+      - name: 'Perform CodeQL Analysis'
+        uses: github/codeql-action/analyze@v3
